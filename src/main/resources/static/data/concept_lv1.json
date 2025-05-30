@@ -1,0 +1,25 @@
+{
+  "nodes": [
+    { "id": "경제학", "label": "Concept_lv1" },
+    { "id": "미시경제", "label": "Concept_lv1" },
+    { "id": "거시경제", "label": "Concept_lv1" },
+    { "id": "수요공급", "label": "Concept_lv2" },
+    { "id": "시장균형", "label": "Concept_lv2" },
+    { "id": "GDP발표", "label": "Event" },
+    { "id": "금리인상", "label": "Event" },
+    { "id": "영상1", "label": "youtube" },
+    { "id": "영상2", "label": "youtube" }
+  ],
+  "links": [
+    { "source": "경제학", "target": "미시경제", "type": "superOrdinateOf" },
+    { "source": "경제학", "target": "거시경제", "type": "_RELATED" },
+    { "source": "수요공급", "target": "시장균형", "type": "superOrdinateOf" },
+    { "source": "GDP발표", "target": "금리인상", "type": "_RELATED" },
+    { "source": "영상1", "target": "영상2", "type": "_RELATED" },
+    { "source": "경제학", "target": "수요공급", "type": "superOrdinateOf" },
+    { "source": "미시경제", "target": "시장균형", "type": "superOrdinateOf" },
+    { "source": "시장균형", "target": "GDP발표", "type": "_RELATED" },
+    { "source": "금리인상", "target": "영상1", "type": "_RELATED" },
+    { "source": "GDP발표", "target": "영상2", "type": "_RELATED" }
+  ]
+}

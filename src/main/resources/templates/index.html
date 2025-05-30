@@ -6,10 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>지구다</title>
     <meta name="description" content="network graph web"/>
-    <link rel="shortcut icon" href="img/favicon.ico">
-    <link rel="stylesheet" type="text/css" href="css/normalize.css" />
-    <link rel="stylesheet" type="text/css" href="css/style.css" />
-    <script src="js/modernizr-custom.js"></script>
+    <link rel="shortcut icon" href="/img/favicon.ico">
+    <link rel="stylesheet" type="text/css" href="/css/normalize.css" />
+    <link rel="stylesheet" type="text/css" href="/css/style.css" />
+    <script src="/js/modernizr-custom.js"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://unpkg.com/3d-force-graph"></script>
 </head>
 <body>
 <svg class="hidden">
@@ -34,48 +36,47 @@
             <h1>지식을 구조화하면 세상이 다르게 보인다</h1>
         </header>
         <div class="mall">
+            <div id="graph-level-merged" style="width:1200px; height:800px; position:absolute; z-index:900;"></div>
             <div class="levels">
                 <div class="level level--1" aria-label="Level 1">
-                    <svg class="map map--1" viewBox="0 0 1200 800" width="100%" height="100%" preserveAspectRatio="xMidYMid meet">
-                        <title>Layer 1</title>
-                        <rect x="0" y="0" width="1200" height="800" class="map__ground" />
-                        <rect x="0" y="0" width="1200" height="800" class="map__outline" fill="none" stroke="#999" stroke-width="2"/>
-                    </svg>
                     <div class="level__pins">
                         <div id="graph-level-1" style="width:100%; height:100%; position:absolute;"></div>
                     </div>
+<!--                    <svg class="map map&#45;&#45;1" viewBox="0 0 1200 800" width="100%" height="100%" preserveAspectRatio="xMidYMid meet">-->
+<!--                        <title>Layer 1</title>-->
+<!--                        <rect x="0" y="0" width="1200" height="800" class="map__ground" />-->
+<!--                        <rect x="0" y="0" width="1200" height="800" class="map__outline" fill="none" stroke="#999" stroke-width="2"/>-->
+<!--                    </svg>-->
                 </div>
                 <div class="level level--2" aria-label="Level 2">
-                    <svg class="map map--2" viewBox="0 0 1200 800" width="100%" height="100%" preserveAspectRatio="xMidYMid meet">
-                        <title>Layer 2</title>
-                        <rect x="0" y="0" width="1200" height="800" class="map__ground" />
-                        <rect x="0" y="0" width="1200" height="800" class="map__outline" fill="none" stroke="#999" stroke-width="2"/>
-                    </svg>
                     <div class="level__pins">
                         <div id="graph-level-2" style="width:100%; height:100%; position:absolute;"></div>
                     </div>
+<!--                    <svg class="map map&#45;&#45;2" viewBox="0 0 1200 800" width="100%" height="100%" preserveAspectRatio="xMidYMid meet">-->
+<!--                        <title>Layer 2</title>-->
+<!--                        <rect x="0" y="0" width="1200" height="800" class="map__ground" />-->
+<!--                        <rect x="0" y="0" width="1200" height="800" class="map__outline" fill="none" stroke="#999" stroke-width="2"/>-->
+<!--                    </svg>-->
                 </div>
                 <div class="level level--3" aria-label="Level 3">
-                    <svg class="map map--3" viewBox="0 0 1200 800" width="100%" height="100%" preserveAspectRatio="xMidYMid meet">
-                        <title>Layer 3</title>
-                        <rect x="0" y="0" width="1200" height="800" class="map__ground" />
-                        <rect x="0" y="0" width="1200" height="800" class="map__outline" fill="none" stroke="#999" stroke-width="2"/>
-                    </svg>
                     <div class="level__pins">
                         <div id="graph-level-3" style="width:100%; height:100%; position:absolute;"></div>
                     </div>
+<!--                    <svg class="map map&#45;&#45;3" viewBox="0 0 1200 800" width="100%" height="100%" preserveAspectRatio="xMidYMid meet">-->
+<!--                        <title>Layer 3</title>-->
+<!--                        <rect x="0" y="0" width="1200" height="800" class="map__ground" />-->
+<!--                        <rect x="0" y="0" width="1200" height="800" class="map__outline" fill="none" stroke="#999" stroke-width="2"/>-->
+<!--                    </svg>-->
                 </div>
                 <div class="level level--4" aria-label="Level 3">
-                    <svg class="map map--4" viewBox="0 0 1200 800" width="100%" height="100%" preserveAspectRatio="xMidYMid meet">
-                        <title>Layer 4</title>
-                        <rect x="0" y="0" width="1200" height="800" class="map__ground" />
-                        <rect x="0" y="0" width="1200" height="800" class="map__outline" fill="none" stroke="#999" stroke-width="2"/>
-                    </svg>
                     <div class="level__pins">
-                        <div id="graph-level-4" style="width:100%; height:100%; position:absolute;"></div>
+                        <div id="graph-level-4" style="width: 1200px; height: 800px; position: absolute;"></div>
                     </div>
-                    <!-- 통합그래프 -->
-                    <div id="graph-level-merged" style="width:100%; height:100%; position:absolute; z-index:900;"></div>
+<!--                    <svg class="map map&#45;&#45;4" viewBox="0 0 1200 800" width="100%" height="100%" preserveAspectRatio="xMidYMid meet">-->
+<!--                        <title>Layer 4</title>-->
+<!--                        <rect x="0" y="0" width="1200" height="800" class="map__ground" />-->
+<!--                        <rect x="0" y="0" width="1200" height="800" class="map__outline" fill="none" stroke="#999" stroke-width="2"/>-->
+<!--                    </svg>-->
                 </div>
             </div>
         </div>
@@ -100,8 +101,9 @@
         </ul>
     </aside>
 </div>
-<script src="js/classie.js"></script>
-<script src="js/list.min.js"></script>
-<script src="js/main.js"></script>
+<script src="/js/graph.js"></script>
+<script src="/js/classie.js"></script>
+<script src="/js/list.min.js"></script>
+<script src="/js/main.js"></script>
 </body>
 </html>
