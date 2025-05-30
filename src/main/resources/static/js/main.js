@@ -1,24 +1,9 @@
-/**
- * main.js
- * http://www.codrops.com
- *
- * Licensed under the MIT license.
- * http://www.opensource.org/licenses/mit-license.php
- * 
- * Copyright 2016, Codrops
- * http://www.codrops.com
- */
-;(function(window) {
-
-	'use strict';
-
-	// helper functions
-	// from https://davidwalsh.name/vendor-prefix
+(function(window) {
 	var prefix = (function () {
 		var styles = window.getComputedStyle(document.documentElement, ''),
 			pre = (Array.prototype.slice.call(styles).join('').match(/-(moz|webkit|ms)-/) || (styles.OLink === '' && ['', 'o']))[1],
 			dom = ('WebKit|Moz|MS|O').match(new RegExp('(' + pre + ')', 'i'))[1];
-		
+
 		return {
 			dom: dom,
 			lowercase: pre,
@@ -26,7 +11,7 @@
 			js: pre[0].toUpperCase() + pre.substr(1)
 		};
 	})();
-	
+
 	// vars & stuff
 	var support = {transitions : Modernizr.csstransitions},
 		transEndEventNames = {'WebkitTransition': 'webkitTransitionEnd', 'MozTransition': 'transitionend', 'OTransition': 'oTransitionEnd', 'msTransition': 'MSTransitionEnd', 'transition': 'transitionend'},
@@ -54,8 +39,6 @@
 		mallLevels = [].slice.call(mallLevelsEl.querySelectorAll('.level')),
 		// total levels
 		mallLevelsTotal = mallLevels.length,
-		// surroundings elems
-		mallSurroundings = [].slice.call(mall.querySelectorAll('.surroundings')),
 		// selected level position
 		selectedLevel,
 		// navigation element wrapper
@@ -88,26 +71,17 @@
 		// sort by ctrls
 		sortByNameCtrl = document.querySelector('#sort-by-name'),
 		// listjs initiliazation (all mall´s spaces)
-		spacesList = new List('spaces-list', { valueNames: ['list__link', { data: ['level'] }, { data: ['category'] } ]} ),
+		spacesList = new List('spaces-list', { valueNames: ['list__link', { data: ['level'] }, { data: ['category'] } ]} )
 
-		// smaller screens:
-		// open search ctrl
-		openSearchCtrl = document.querySelector('button.open-search'),
-		// main container
-		containerEl = document.querySelector('.container'),
-		// close search ctrl
-		closeSearchCtrl = spacesListEl.querySelector('button.close-search');
+	// main container
+	containerEl = document.querySelector('.container');
 
 	function init() {
 		// init/bind events
 		initEvents();
 	}
 
-	/**
-	 * Initialize/Bind events fn.
-	 */
 	function initEvents() {
-		// click on a Mall´s level
 		mallLevels.forEach(function(level, pos) {
 			level.addEventListener('click', function() {
 				// shows this level
@@ -115,92 +89,46 @@
 			});
 		});
 
-		// click on the show mall´s levels ctrl
 		allLevelsCtrl.addEventListener('click', function() {
-			// shows all levels
 			showAllLevels();
 		});
 
-		// navigating through the levels
 		levelUpCtrl.addEventListener('click', function() { navigate('Down'); });
 		levelDownCtrl.addEventListener('click', function() { navigate('Up'); });
 
-		// sort by name ctrl - add/remove category name (css pseudo element) from list and sorts the spaces by name 
 		sortByNameCtrl.addEventListener('click', function() {
 			if( this.checked ) {
 				classie.remove(spacesEl, 'grouped-by-category');
 				spacesList.sort('list__link');
 			}
 			else {
-				classie.add(spacesEl, 'grouped-by-category'); 
+				classie.add(spacesEl, 'grouped-by-category');
 				spacesList.sort('category');
 			}
 		});
-
-		// hovering a pin / clicking a pin
-		pins.forEach(function(pin) {
-			var contentItem = contentEl.querySelector('.content__item[data-space="' + pin.getAttribute('data-space') + '"]');
-
-			pin.addEventListener('mouseenter', function() {
-				if( !isOpenContentArea ) {
-					classie.add(contentItem, 'content__item--hover');
-				}
-			});
-			pin.addEventListener('mouseleave', function() {
-				if( !isOpenContentArea ) {
-					classie.remove(contentItem, 'content__item--hover');
-				}
-			});
-			pin.addEventListener('click', function(ev) {
-				ev.preventDefault();
-				// open content for this pin
-				openContent(pin.getAttribute('data-space'));
-				// remove hover class (showing the title)
-				classie.remove(contentItem, 'content__item--hover');
-			});
-		});
-
-		// closing the content area
 		contentCloseCtrl.addEventListener('click', function() {
 			closeContentArea();
 		});
 
-		// clicking on a listed space: open level - shows space
-		spaces.forEach(function(space) {
-			var spaceItem = space.parentNode,
-				level = spaceItem.getAttribute('data-level'),
-				spacerefval = spaceItem.getAttribute('data-space');
+		document.querySelectorAll('.list__link').forEach(function(spaceLink) {
+			const level = parseInt(spaceLink.parentElement.getAttribute('data-level'));
 
-			space.addEventListener('click', function(ev) {
+			spaceLink.addEventListener('click', function(ev) {
 				ev.preventDefault();
-				// for smaller screens: close search bar
-				closeSearch();
-				// open level
-				showLevel(level);
-				// open content for this space
-				openContent(spacerefval);
+				closeSearch();  // 검색창 닫기
+
+
+				showLevel(level);  // 해당 층으로 이동
 			});
-		});
-
-		// smaller screens: open the search bar
-		openSearchCtrl.addEventListener('click', function() {
-			openSearch();
-		});
-
-		// smaller screens: close the search bar
-		closeSearchCtrl.addEventListener('click', function() {
-			closeSearch();
 		});
 	}
 
-	/**
-	 * Opens a level. The current level moves to the center while the other ones move away.
-	 */
+
 	function showLevel(level) {
 		if( isExpanded ) {
 			return false;
 		}
-		
+
 		// update selected level val
 		selectedLevel = level;
 
@@ -208,7 +136,7 @@
 		setNavigationState();
 
 		classie.add(mallLevelsEl, 'levels--selected-' + selectedLevel);
-		
+
 		// the level element
 		var levelEl = mallLevels[selectedLevel - 1];
 		classie.add(levelEl, 'level--current');
@@ -221,10 +149,7 @@
 
 			isExpanded = true;
 		}, 'transform');
-		
-		// hide surroundings element
-		hideSurroundings();
-		
+
 		// show mall nav ctrls
 		showMallNav();
 
@@ -232,9 +157,6 @@
 		showLevelSpaces();
 	}
 
-	/**
-	 * Shows all Mall´s levels
-	 */
 	function showAllLevels() {
 		if( isNavigating || !isExpanded ) {
 			return false;
@@ -248,9 +170,6 @@
 		// hide level pins
 		removePins();
 
-		// shows surrounding element
-		showSurroundings();
-		
 		// hide mall nav ctrls
 		hideMallNav();
 
@@ -263,66 +182,30 @@
 		}
 	}
 
-	/**
-	 * Shows all spaces for current level
-	 */
 	function showLevelSpaces() {
-		spacesList.filter(function(item) { 
-			return item.values().level === selectedLevel.toString(); 
+		spacesList.filter(function(item) {
+			return item.values().level === selectedLevel.toString();
 		});
 	}
 
-	/**
-	 * Shows the level´s pins
-	 */
 	function showPins(levelEl) {
 		var levelEl = levelEl || mallLevels[selectedLevel - 1];
 		classie.add(levelEl.querySelector('.level__pins'), 'level__pins--active');
 	}
 
-	/**
-	 * Removes the level´s pins
-	 */
 	function removePins(levelEl) {
 		var levelEl = levelEl || mallLevels[selectedLevel - 1];
 		classie.remove(levelEl.querySelector('.level__pins'), 'level__pins--active');
 	}
 
-	/**
-	 * Show the navigation ctrls
-	 */
 	function showMallNav() {
 		classie.remove(mallNav, 'mallnav--hidden');
 	}
 
-	/**
-	 * Hide the navigation ctrls
-	 */
 	function hideMallNav() {
 		classie.add(mallNav, 'mallnav--hidden');
 	}
 
-	/**
-	 * Show the surroundings level
-	 */
-	function showSurroundings() {
-		mallSurroundings.forEach(function(el) {
-			classie.remove(el, 'surroundings--hidden');
-		});
-	}
-
-	/**
-	 * Hide the surroundings level
-	 */
-	function hideSurroundings() {
-		mallSurroundings.forEach(function(el) {
-			classie.add(el, 'surroundings--hidden');
-		});
-	}
-
-	/**
-	 * Navigate through the mall´s levels
-	 */
 	function navigate(direction) {
 		if( isNavigating || !isExpanded || isOpenContentArea ) {
 			return false;
@@ -341,7 +224,7 @@
 			++selectedLevel;
 		}
 		else {
-			isNavigating = false;	
+			isNavigating = false;
 			return false;
 		}
 
@@ -376,9 +259,6 @@
 		removePins(currentLevel);
 	}
 
-	/**
-	 * Control navigation ctrls state. Add disable class to the respective ctrl when the current level is either the first or the last.
-	 */
 	function setNavigationState() {
 		if( selectedLevel == 1 ) {
 			classie.add(levelDownCtrl, 'boxbutton--disabled');
@@ -395,9 +275,6 @@
 		}
 	}
 
-	/**
-	 * Opens/Reveals a content item.
-	 */
 	function openContent(spacerefval) {
 		// if one already shown:
 		if( isOpenContentArea ) {
@@ -409,7 +286,7 @@
 			spaceref = spacerefval;
 			openContentArea();
 		}
-		
+
 		// remove class active (if any) from current list item
 		var activeItem = spacesEl.querySelector('li.list__item--active');
 		if( activeItem ) {
@@ -427,9 +304,6 @@
 		classie.add(mallLevels[selectedLevel - 1].querySelector('svg > .map__space[data-space="' + spaceref + '"]'), 'map__space--selected');
 	}
 
-	/**
-	 * Opens the content area.
-	 */
 	function openContentArea() {
 		isOpenContentArea = true;
 		// shows space
@@ -443,9 +317,6 @@
 		classie.add(levelUpCtrl, 'boxbutton--disabled');
 	}
 
-	/**
-	 * Shows a space.
-	 */
 	function showSpace(sliding) {
 		// the content item
 		var contentItem = contentEl.querySelector('.content__item[data-space="' + spaceref + '"]');
@@ -460,9 +331,6 @@
 		classie.add(mallLevelsEl.querySelector('.pin[data-space="' + spaceref + '"]'), 'pin--active');
 	}
 
-	/**
-	 * Closes the content area.
-	 */
 	function closeContentArea() {
 		classie.remove(contentEl, 'content--open');
 		// close current space
@@ -478,9 +346,6 @@
 		isOpenContentArea = false;
 	}
 
-	/**
-	 * Hides a space.
-	 */
 	function hideSpace() {
 		// the content item
 		var contentItem = contentEl.querySelector('.content__item[data-space="' + spaceref + '"]');
@@ -500,25 +365,19 @@
 		}
 	}
 
-	/**
-	 * for smaller screens: open search bar
-	 */
 	function openSearch() {
-		// shows all levels - we want to show all the spaces for smaller screens 
+		// shows all levels - we want to show all the spaces for smaller screens
 		showAllLevels();
 
 		classie.add(spacesListEl, 'spaces-list--open');
 		classie.add(containerEl, 'container--overflow');
 	}
 
-	/**
-	 * for smaller screens: close search bar
-	 */
 	function closeSearch() {
 		classie.remove(spacesListEl, 'spaces-list--open');
 		classie.remove(containerEl, 'container--overflow');
 	}
-	
+
 	init();
 
 })(window);
