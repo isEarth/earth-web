@@ -212,6 +212,31 @@ button:focus {
 	transform-style: preserve-3d;
 }
 
+/* 기본적으로 모든 canvas는 마우스 이벤트 차단 */
+.level canvas {
+	pointer-events: none;
+}
+
+.level--current canvas {
+	pointer-events: auto;
+}
+
+/* fullscreen 모드 */
+.levels.levels--fullscreen {
+	transform: none !important;
+}
+
+.fullscreen-graph {
+	position: fixed !important;
+	top: 0;
+	left: 0;
+	width: 100vw !important;
+	height: 100vh !important;
+	z-index: 2000;
+}
+.levels.levels--fullscreen .level:not(.level--current) {
+	display: none;
+}
 .level::after {
 	font-size: 2.5vmin;
 	line-height: 0;
@@ -239,21 +264,34 @@ button:focus {
 	transform: rotateZ(-20deg) rotateZ(45deg) rotateX(-70deg) translateZ(5vmin) translateX(5vmin) translateY(-10vmin);
 }
 
-.level--1::after {
-	content: '지식 그래프';
+.layer-tag {
+	position: absolute;
+	top: -3rem; /* 레이어 박스보다 위쪽으로 띄움 */
+	left: 10%;
+	transform: translateX(-50%);
+	/*padding: 0.3rem 0.8rem;*/
+	color: #fff;
+	font-size: 1.5rem;
+	/*z-index: 10;*/
+	white-space: nowrap;
+	pointer-events: none;
 }
 
-.level--2::after {
-	content: '이벤트';
-}
+/*.level--1::after {*/
+/*	content: '지식 그래프';*/
+/*}*/
 
-.level--3::after {
-	content: '컨셉맵-용어';
-}
+/*.level--2::after {*/
+/*	content: '이벤트';*/
+/*}*/
 
-.level--4::after {
-	content: '컨셉맵-추상';
-}
+/*.level--3::after {*/
+/*	content: '컨셉';*/
+/*}*/
+
+/*.level--4::after {*/
+/*	content: '컨셉';*/
+/*}*/
 
 .level:not(:first-child) {
 	position: absolute;
@@ -279,42 +317,6 @@ button:focus {
 .level--4 {
 	-webkit-transform: translateZ(30vmin) scale(0.7);
 	transform: translateZ(30vmin) scale(0.7);
-}
-
-.level--1 .map__ground {
-	fill: rgba(0, 207, 255, 0.2);
-}
-.level--2 .map__ground {
-	fill: rgba(0, 255, 0, 0.3);
-	-webkit-mask-image: radial-gradient(circle at 0% 100%, transparent 0%, black 30%, black 100%);
-	mask-image: radial-gradient(circle at 0% 100%, transparent 0%, black 30%, black 100%);
-}
-
-.level--3 .map__ground {
-	fill: rgba(255, 60, 56, 0.3);
-	-webkit-mask-image: radial-gradient(circle at 0% 100%, transparent 0%, black 30%, black 100%);
-	mask-image: radial-gradient(circle at 0% 100%, transparent 0%, black 30%, black 100%);
-}
-
-.level--4 .map__ground {
-	fill: rgba(255, 255, 0, 0.3);
-	-webkit-mask-image: radial-gradient(circle at 0% 100%, transparent 0%, black 30%, black 100%);
-	mask-image: radial-gradient(circle at 0% 100%, transparent 0%, black 30%, black 100%);
-}
-
-.level--1 .map__outline {
-	stroke: #00CFFF;
-}
-
-.level--2 .map__outline {
-	stroke: #00FF00;
-}
-
-.level--3 .map__outline {
-	stroke: #FF3C38;
-}
-.level--4 .map__outline {
-	stroke: #FFFF00;
 }
 
 /* Selection transitions for 4 levels */
@@ -367,7 +369,7 @@ button:focus {
 .level.level--current {
 	-webkit-transform: translateZ(15vmin) rotate3d(0,0,1,20deg);
 	/* go to center */
-	transform: translateZ(15vmin) rotate3d(0,0,1,20deg);
+	transform: translateZ(15vmin) rotate3d(0,0,0,20deg);
 }
 
 /* Navigation classes */
