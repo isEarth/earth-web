@@ -1,5 +1,10 @@
-fetch('/data/concept_lv1.json')
-    .then(response => response.json())
+fetch('http://localhost:8080/api/graph')
+    .then(response => {
+            if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+    })
     .then(data => {
         // 노드 분리
         const conceptLv1Nodes = data.nodes.filter(n => n.label === 'Concept_lv1');
