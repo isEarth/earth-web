@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>지구다</title>
     <meta name="description" content="network graph web"/>
-    <link rel="shortcut icon" href="/img/favicon.ico">
+    <link rel="shortcut icon" href="/img/2750548.png">
     <link rel="stylesheet" type="text/css" href="/css/normalize.css" />
     <link rel="stylesheet" type="text/css" href="/css/style.css" />
     <script src="/js/modernizr-custom.js"></script>
@@ -35,6 +35,13 @@
         <header class="codrops-header">
             <h1>지식을 구조화하면 세상이 다르게 보인다</h1>
         </header>
+        <!-- 필터된 그래프 보기 버튼 -->
+        <button id="show-filtered" class="button boxbutton boxbutton--alt" style="position:absolute; bottom:1em; right:1em; z-index:1001;">
+            구조화 그래프 보기
+        </button>
+        <!-- 전용 컨테이너: 처음엔 숨겨놓기 -->
+        <div id="filtered-graph" style="width:600px; height:400px; position:absolute; bottom:1em; right:1em; display:none; background:#081229; border:1px solid #444; z-index:1000;"></div>
+
         <div class="mall">
             <div id="graph-level-merged" style="width:1200px; height:800px; position:absolute; z-index:900;"></div>
             <div class="levels">
@@ -56,7 +63,7 @@
                         <div id="graph-level-3" style="width:100%; height:100%; position:absolute;"></div>
                     </div>
                 </div>
-                <div class="level level--4" aria-label="Level 3">
+                <div class="level level--4" aria-label="Level 4">
                     <div class="layer-tag">컨셉맵1</div>
                     <div class="level__pins">
                         <div id="graph-level-4" style="width: 1200px; height: 800px; position: absolute;"></div>
@@ -69,6 +76,11 @@
             <button class="boxbutton boxbutton--dark mallnav__button--all-levels" aria-label="Back to all levels"><svg class="icon icon--stack"><use xlink:href="#icon-stack"></use></svg></button>
             <button class="boxbutton mallnav__button--down" aria-label="Go down"><svg class="icon icon--angle-down"><use xlink:href="#icon-angle-down"></use></svg></button>
         </nav>
+
+        <button id="link_pred" class="button boxbutton boxbutton--alt" style="position:absolute; bottom:1em; left:1em; z-index:1000;">
+            숨은 관계 찾기
+        </button>
+
         <div class="content">
             <button class="boxbutton boxbutton--dark content__button content__button--hidden" aria-label="Close details"><svg class="icon icon--cross"><use xlink:href="#icon-cross"></use></svg></button>
         </div>
