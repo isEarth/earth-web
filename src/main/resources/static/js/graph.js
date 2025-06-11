@@ -37,7 +37,7 @@ fetch('http://localhost:8080/api/graph')
         const interLayerLinks = data.links.filter(l =>
             (conceptLv1Nodes.some(n => n.name === l.source) && conceptLv2Nodes.some(n => n.name === l.target)) ||
             (conceptLv2Nodes.some(n => n.name === l.source) && eventNodes.some(n => n.name === l.target)) ||
-            (eventNodes.some(n => n.name === l.source) && youtubeNodes.some(n => n.name === l.target))
+            (eventNodes.some(n => n.name === l.target) && youtubeNodes.some(n => n.name === l.source))
         );
 
         // 1) data.links 중 eventNodes → youtubeNodes 이어주는 링크만 따로 뽑아서
@@ -71,6 +71,7 @@ fetch('http://localhost:8080/api/graph')
             .backgroundColor('#1F957233')  // 레이어4 파랑
             .enablePointerInteraction(false)
             .enableNavigationControls(false)
+            .linkHoverPrecision(2)
 
             // 1) 노드 간 반발력(Repulsion) 강화
             //    - strength 값이 더 음수일수록 서로 멀리 떨어짐
@@ -113,10 +114,11 @@ fetch('http://localhost:8080/api/graph')
             .backgroundColor('#7BBEDF33')
             .enablePointerInteraction(false)
             .enableNavigationControls(false)
+            .linkHoverPrecision(2)
 
             // 1) 노드 간 반발력(Repulsion) 강화
             //    - strength 값이 더 음수일수록 서로 멀리 떨어짐
-            .d3Force('charge', d3.forceManyBody().strength(-50))
+            .d3Force('charge', d3.forceManyBody().strength(-10))
 
             // 2) 링크 거리(Link distance) 증가
             //    - distance 값을 키우면 연결된 노드 사이 간격이 넓어짐
@@ -144,6 +146,7 @@ fetch('http://localhost:8080/api/graph')
             .backgroundColor('#2AC2BD33')
             .enablePointerInteraction(false)
             .enableNavigationControls(false)
+            .linkHoverPrecision(2)
 
             // 1) 노드 간 반발력(Repulsion) 강화
             //    - strength 값이 더 음수일수록 서로 멀리 떨어짐
@@ -175,6 +178,7 @@ fetch('http://localhost:8080/api/graph')
             .backgroundColor('#5F72A433')
             .enablePointerInteraction(false)
             .enableNavigationControls(false)
+            .linkHoverPrecision(2)
 
             // 1) 노드 간 반발력(Repulsion) 강화
             //    - strength 값이 더 음수일수록 서로 멀리 떨어짐
@@ -416,11 +420,11 @@ fetch('http://localhost:8080/api/graph')
         // (1) 버튼과 컨테이너 참조
         const btnShow = document.getElementById('show-filtered');
         const divFiltered = document.getElementById('filtered-graph');
+        const canvasContainer = document.getElementById('filtered-graph-canvas');
         let filteredGraph;  // 전용 ForceGraph3D 인스턴스
 
         // (2) 버튼 클릭 핸들러 등록
         btnShow.addEventListener('click', () => {
-            console.log('click')
             // 토글 표시
             const isVisible = divFiltered.style.display === 'block';
             divFiltered.style.display = isVisible ? 'none' : 'block';
@@ -436,25 +440,74 @@ fetch('http://localhost:8080/api/graph')
 
             // (4) 기존 인스턴스가 있으면 제거
             if (filteredGraph) {
-                // ForceGraph3D 인스턴스를 지울 수 있는 API는 없으니
-                // 그냥 새로 덮어씌웁니다.
-                divFiltered.innerHTML = '';
+                canvasContainer.innerHTML = '';
             }
 
+            const layerColorMap = {
+                'Concept_lv1': '#ff0000',  // 진한 빨강
+                'Concept_lv2': '#ff6666',  // 약간 연한 빨강
+                'Event'      : '#ffbbbb',  // 더 연한 빨강
+                'Youtube'    : '#ffffff'   // 가장 연한 빨강
+            };
+
             // (5) 새 ForceGraph3D 인스턴스 생성
-            filteredGraph = ForceGraph3D()(divFiltered)
+            filteredGraph = ForceGraph3D()(canvasContainer)
                 .graphData({nodes: filteredNodes, links: filteredLinks})
                 .nodeId('name')
                 .nodeLabel(n => n.name)
-                .width(divFiltered.clientWidth)
-                .height(divFiltered.clientHeight)
-                .nodeRelSize(6)
+                .width(canvasContainer.clientWidth)
+                .height(canvasContainer.clientHeight)
+                .nodeRelSize(8)
                 .linkWidth(0.8)
-                .nodeColor(() => HIGHLIGHT_COLOR)
+                .nodeColor(n => layerColorMap[n.label] || DEFAULT_COLOR)
                 .linkColor(() => HIGHLIGHT_COLOR)
                 .backgroundColor('rgba(0,0,0,0)')
-                .d3Force('charge', d3.forceManyBody().strength(-30))
+                .d3Force('charge', d3.forceManyBody().strength(-60))
                 .d3Force('link', d3.forceLink().distance(50).strength(1))
-                .d3Force('center', d3.forceCenter(0, 0, 0));
+                .d3Force('center', d3.forceCenter(0, 0, 0))
+                .linkHoverPrecision(2);
+        });
+
+        // ① 버튼 참조
+        const btnLinkPred = document.getElementById('link_pred');
+
+        // ② 클릭 핸들러 등록
+        btnLinkPred.addEventListener('click', () => {
+            // (선택) 요청 직전에 사용자에게 로딩 표시
+            btnLinkPred.disabled = true;
+            btnLinkPred.textContent = '검색 중…';
+
+            // ③ API 호출 (POST 예시)
+            fetch('/api/hidden-relations', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                // 필요하다면 본문에 추가 파라미터를 담아 보낼 수 있습니다.
+                body: JSON.stringify({
+                    // 예: 현재 강조된 노드 집합
+                    nodes: Array.from(highlightSet),
+                    // 예: 현재 inter-layer 링크
+                    links: interLayerLinks
+                })
+            })
+                .then(res => {
+                    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                    return res.json();
+                })
+                .then(data => {
+                    console.log('숨은 관계 결과:', data);
+                    // TODO: 받은 data를 바탕으로 UI에 표시하거나,
+                    //       filtered-graph 등에 업데이트 로직을 추가
+                })
+                .catch(err => {
+                    console.error('숨은 관계 검색 중 에러:', err);
+                    alert('숨은 관계 검색에 실패했습니다.');
+                })
+                .finally(() => {
+                    // 버튼 상태 원복
+                    btnLinkPred.disabled = false;
+                    btnLinkPred.textContent = '숨은 관계 찾기';
+                });
         });
     });
