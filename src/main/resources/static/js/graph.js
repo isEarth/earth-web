@@ -1,10 +1,10 @@
 fetch('http://localhost:8080/api/graph')
-// fetch('data/concept_lv1.json')
+    // fetch('data/concept_lv1.json')
     .then(response => {
-            if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
     })
     .then(data => {
         // console.log([...new Set(data.nodes.map(n => n.label))]);
@@ -48,10 +48,13 @@ fetch('http://localhost:8080/api/graph')
         // 2) 콘솔에 찍어보기
         console.log('Event → Youtube 링크만 확인:', eventToYoutubeLinks);
 
-        // 강조용 색상과 기본 색상 정의
+        // 노드 강조용 색상과 기본 색상 정의
         const DEFAULT_COLOR   = '#08122A';
         const HIGHLIGHT_COLOR = '#ff3333';
 
+        const NODE_SIZE = 10
+        const LINK_WIDTH = 1.2
+        const LINK_COLOR = '#08122A';
 
         const graphs = {};
 
@@ -59,14 +62,17 @@ fetch('http://localhost:8080/api/graph')
         graphs['4'] = ForceGraph3D()(document.getElementById('graph-level-4'))
             .graphData({ nodes: conceptLv1Nodes, links: conceptLv1Links })
             .nodeId('name') // id값이 없어서 추가
-            .nodeLabel(n => n.name)
+            .nodeLabel(n =>
+                `<div style="font-weight:600; font-size:30px; color:#fff; white-space:nowrap">
+                      ${n.name}
+                </div>`)
             // .nodeAutoColorBy('group')
             .width(1200)
             .height(800)
-            .nodeRelSize(6)  // 노드 크기 작게
-            .linkWidth(0.5)  // 얇게
+            .nodeRelSize(NODE_SIZE)  // 노드 크기 작게
+            .linkWidth(LINK_WIDTH)  // 얇게
             .nodeColor(() => DEFAULT_COLOR)
-            .linkColor(() => DEFAULT_COLOR)
+            .linkColor(() => LINK_COLOR)
             .showNavInfo(false)  // 우측 하단 info 제거
             .backgroundColor('#1F957233')  // 레이어4 파랑
             .enablePointerInteraction(false)
@@ -98,7 +104,7 @@ fetch('http://localhost:8080/api/graph')
             )
 
 
-            // ===== 레이어 3 (Concept_lv2)
+        // ===== 레이어 3 (Concept_lv2)
         graphs['3'] = ForceGraph3D()(document.getElementById('graph-level-3'))
             .graphData({ nodes: conceptLv2Nodes, links: conceptLv2Links })
             .nodeId('name') // id값이 없어서 추가
@@ -106,10 +112,10 @@ fetch('http://localhost:8080/api/graph')
             // .nodeAutoColorBy('group')
             .width(1200)
             .height(800)
-            .nodeRelSize(6)  // 노드 크기 작게
-            .linkWidth(0.5)  // 얇게
+            .nodeRelSize(NODE_SIZE)  // 노드 크기 작게
+            .linkWidth(LINK_WIDTH)  // 얇게
             .nodeColor(() => DEFAULT_COLOR)
-            .linkColor(() => DEFAULT_COLOR)
+            .linkColor(() => LINK_COLOR)
             .showNavInfo(false)  // 우측 하단 info 제거
             .backgroundColor('#7BBEDF33')
             .enablePointerInteraction(false)
@@ -122,7 +128,7 @@ fetch('http://localhost:8080/api/graph')
 
             // 2) 링크 거리(Link distance) 증가
             //    - distance 값을 키우면 연결된 노드 사이 간격이 넓어짐
-            .d3Force('link', d3.forceLink().distance(80).strength(1))
+            .d3Force('link', d3.forceLink().distance(250).strength(1))
 
             // 3) 중앙 집중력(Centering) 비활성화
             //    - 기본으로 들어가는 center force를 제거하면
@@ -138,10 +144,10 @@ fetch('http://localhost:8080/api/graph')
             .nodeAutoColorBy('group')
             .width(1200)
             .height(800)
-            .nodeRelSize(6)  // 노드 크기 작게
-            .linkWidth(0.5)  // 얇게
+            .nodeRelSize(NODE_SIZE)  // 노드 크기 작게
+            .linkWidth(LINK_WIDTH)  // 얇게
             .nodeColor(() => DEFAULT_COLOR)
-            .linkColor(() => DEFAULT_COLOR)
+            .linkColor(() => LINK_COLOR)
             .showNavInfo(false)  // 우측 하단 info 제거
             .backgroundColor('#2AC2BD33')
             .enablePointerInteraction(false)
@@ -170,10 +176,10 @@ fetch('http://localhost:8080/api/graph')
             .nodeAutoColorBy('group')
             .width(1200)
             .height(800)
-            .nodeRelSize(6)  // 노드 크기 작게
-            .linkWidth(0.5)  // 얇게
+            .nodeRelSize(NODE_SIZE)  // 노드 크기 작게
+            .linkWidth(LINK_WIDTH)  // 얇게
             .nodeColor(() => DEFAULT_COLOR)
-            .linkColor(() => DEFAULT_COLOR)
+            .linkColor(() => LINK_COLOR)
             .showNavInfo(false)  // 우측 하단 info 제거
             .backgroundColor('#5F72A433')
             .enablePointerInteraction(false)
@@ -319,102 +325,102 @@ fetch('http://localhost:8080/api/graph')
         let currentLevelId = null;  // 현재 interaction이 켜져 있는 레이어 ID
 
         function expandGraphToFullscreen(levelId) {
-                // 1) 기존에 선택된 레이어가 있으면 interaction 끄기
-                if (currentLevelId !== null) {
-                        graphs[currentLevelId]
-                            .enablePointerInteraction(false)
-                            .enableNavigationControls(false);
-                }
+            // 1) 기존에 선택된 레이어가 있으면 interaction 끄기
+            if (currentLevelId !== null) {
+                graphs[currentLevelId]
+                    .enablePointerInteraction(false)
+                    .enableNavigationControls(false);
+            }
 
-                // 2) 클릭한 레이어만 “current” 클래스 부여 (visual 강조)
-                document.querySelectorAll('.level').forEach(lvl => lvl.classList.remove('level--current'));
-                const selectedLevelEl = document.querySelector(`.level--${levelId}`);
-                selectedLevelEl.classList.add('level--current');
+            // 2) 클릭한 레이어만 “current” 클래스 부여 (visual 강조)
+            document.querySelectorAll('.level').forEach(lvl => lvl.classList.remove('level--current'));
+            const selectedLevelEl = document.querySelector(`.level--${levelId}`);
+            selectedLevelEl.classList.add('level--current');
 
-                // 3) .levels 전체를 풀스크린화
-                document.querySelector('.levels').classList.add('levels--fullscreen');
+            // 3) .levels 전체를 풀스크린화
+            document.querySelector('.levels').classList.add('levels--fullscreen');
 
-                // 4) 해당 그래프 컨테이너만 fullscreen-graph 클래스 부여
-                const graphDiv = document.getElementById(`graph-level-${levelId}`);
-                graphDiv.classList.add('fullscreen-graph');
+            // 4) 해당 그래프 컨테이너만 fullscreen-graph 클래스 부여
+            const graphDiv = document.getElementById(`graph-level-${levelId}`);
+            graphDiv.classList.add('fullscreen-graph');
 
-                // 5) 해당 그래프 인스턴스만 interaction 켜기
-                graphs[levelId]
-                    .enablePointerInteraction(true)
-                    .enableNavigationControls(true)
-                    .width(window.innerWidth)
-                    .height(window.innerHeight)
-                    .nodeRelSize(6)    // 노드 크기 확대
-                    .linkWidth(0.5)     // 링크 두께 확대
-                    .enablePointerInteraction(true)
-                    .onNodeClick(highlightConnected);
+            // 5) 해당 그래프 인스턴스만 interaction 켜기
+            graphs[levelId]
+                .enablePointerInteraction(true)
+                .enableNavigationControls(true)
+                .width(window.innerWidth)
+                .height(window.innerHeight)
+                .nodeRelSize(NODE_SIZE)    // 노드 크기 확대
+                .linkWidth(LINK_WIDTH)  // 얇게
+                .enablePointerInteraction(true)
+                .onNodeClick(highlightConnected);
 
-                // 6) 현재 레이어 ID 업데이트
-                currentLevelId = levelId;
+            // 6) 현재 레이어 ID 업데이트
+            currentLevelId = levelId;
         }
 
         function collapseAllFullscreen() {
-                // 1) .levels 풀스크린 모드 해제
-                document.querySelector('.levels').classList.remove('levels--fullscreen');
+            // 1) .levels 풀스크린 모드 해제
+            document.querySelector('.levels').classList.remove('levels--fullscreen');
 
-                // 2) 풀스크린으로 열린 모든 그래프 컨테이너에서 클래스 제거
-                document.querySelectorAll('.fullscreen-graph').forEach(div => div.classList.remove('fullscreen-graph'));
+            // 2) 풀스크린으로 열린 모든 그래프 컨테이너에서 클래스 제거
+            document.querySelectorAll('.fullscreen-graph').forEach(div => div.classList.remove('fullscreen-graph'));
 
-                // 3) “current” 클래스도 모두 제거
-                document.querySelectorAll('.level--current').forEach(lvl => lvl.classList.remove('level--current'));
+            // 3) “current” 클래스도 모두 제거
+            document.querySelectorAll('.level--current').forEach(lvl => lvl.classList.remove('level--current'));
 
-                // 4) interaction이 켜져 있던 레이어가 있으면 끄기
-                if (currentLevelId !== null) {
-                        graphs[currentLevelId]
-                            .enablePointerInteraction(false)
-                            .enableNavigationControls(false);
-                        currentLevelId = null;
-                }
+            // 4) interaction이 켜져 있던 레이어가 있으면 끄기
+            if (currentLevelId !== null) {
+                graphs[currentLevelId]
+                    .enablePointerInteraction(false)
+                    .enableNavigationControls(false);
+                currentLevelId = null;
+            }
 
-                // 5) 모든 그래프를 원래 크기/스타일로 리셋
-                ['1','2','3','4'].forEach(id => {
-                        graphs[id]
-                            .width(1200)
-                            .height(800)
-                            .nodeRelSize(6)
-                            .linkWidth(0.5);
-                });
+            // 5) 모든 그래프를 원래 크기/스타일로 리셋
+            ['1','2','3','4'].forEach(id => {
+                graphs[id]
+                    .width(1200)
+                    .height(800)
+                    .nodeRelSize(NODE_SIZE)
+                    .linkWidth(LINK_WIDTH)  // 얇게
+            });
         }
 
         // ----- 이벤트 리스너 등록 -----
         ['1','2','3','4'].forEach(levelId => {
-                document.querySelector(`.level--${levelId}`).addEventListener('click', () => {
-                        expandGraphToFullscreen(levelId);
-                });
+            document.querySelector(`.level--${levelId}`).addEventListener('click', () => {
+                expandGraphToFullscreen(levelId);
+            });
         });
 
         // ① 각 레이어 자체(.level--1, .level--2 등)에만 클릭 리스너 등록
         ['1','2','3','4'].forEach(levelId => {
-                document.querySelector(`.level--${levelId}`)
-                    .addEventListener('click', () => {
-                            expandGraphToFullscreen(levelId);
-                    });
+            document.querySelector(`.level--${levelId}`)
+                .addEventListener('click', () => {
+                    expandGraphToFullscreen(levelId);
+                });
         });
 
         // ② mallnav “Up” 버튼: 이벤트 버블링 중단 + navigate 호출
         const levelUpCtrl = document.querySelector('.mallnav__button--up');
         levelUpCtrl.addEventListener('click', function(e) {
-                e.stopPropagation();  // 이 클릭이 부모 .level로 버블되지 않게 막음
-                navigate('Down');     // 실제 레벨 이동 함수 (main.js 쪽 구현 코드)
+            e.stopPropagation();  // 이 클릭이 부모 .level로 버블되지 않게 막음
+            navigate('Down');     // 실제 레벨 이동 함수 (main.js 쪽 구현 코드)
         });
 
         // ③ mallnav “Down” 버튼: 이벤트 버블링 중단 + navigate 호출
         const levelDownCtrl = document.querySelector('.mallnav__button--down');
         levelDownCtrl.addEventListener('click', function(e) {
-                e.stopPropagation();
-                navigate('Up');
+            e.stopPropagation();
+            navigate('Up');
         });
 
         // ④ mallnav “모든 레이어 보기(All-levels)” 버튼: 이벤트 버블링 중단 + 콜백
         const allLevelsCtrl = document.querySelector('.mallnav__button--all-levels');
         allLevelsCtrl.addEventListener('click', function(e) {
-                e.stopPropagation();
-                collapseAllFullscreen();
+            e.stopPropagation();
+            collapseAllFullscreen();
         });
 
         // (1) 버튼과 컨테이너 참조
@@ -428,7 +434,7 @@ fetch('http://localhost:8080/api/graph')
             // 토글 표시
             const isVisible = divFiltered.style.display === 'block';
             divFiltered.style.display = isVisible ? 'none' : 'block';
-            btnShow.textContent = isVisible ? '필터된 그래프 보기' : '닫기';
+            btnShow.textContent = isVisible ? '구조화 그래프 보기' : '닫기';
 
             if (isVisible) return;  // 닫기 모드면 그만
 
@@ -458,7 +464,7 @@ fetch('http://localhost:8080/api/graph')
                 .width(canvasContainer.clientWidth)
                 .height(canvasContainer.clientHeight)
                 .nodeRelSize(8)
-                .linkWidth(0.8)
+                .linkWidth(LINK_WIDTH)  // 얇게
                 .nodeColor(n => layerColorMap[n.label] || DEFAULT_COLOR)
                 .linkColor(() => HIGHLIGHT_COLOR)
                 .backgroundColor('rgba(0,0,0,0)')
