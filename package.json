@@ -1,0 +1,17 @@
+{
+  "name": "earth-web",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/eunhyea/earth-web.git"
+  },
+  "private": true,
+  "dependencies": {
+    "three-spritetext": "^1.9.6"
+  }
+}

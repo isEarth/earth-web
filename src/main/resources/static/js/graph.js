@@ -1,3 +1,7 @@
+// loading spinner
+const loader = document.getElementById('graph-loading');
+loader.classList.remove('hidden');
+
 fetch('http://localhost:8080/api/graph')
     // fetch('data/concept_lv1.json')
     .then(response => {
@@ -7,7 +11,6 @@ fetch('http://localhost:8080/api/graph')
         return response.json();
     })
     .then(data => {
-        // console.log([...new Set(data.nodes.map(n => n.label))]);
 
         // 노드 분리
         const conceptLv1Nodes = data.nodes.filter(n => n.label === 'Concept_lv1');
@@ -46,158 +49,108 @@ fetch('http://localhost:8080/api/graph')
             youtubeNodes.some(n => n.name === l.source)   // target이 Youtube 레이어
         );
         // 2) 콘솔에 찍어보기
-        console.log('Event → Youtube 링크만 확인:', eventToYoutubeLinks);
+        console.log('Event → Youtube 링크만 확인:', youtubeLinks);
 
         // 노드 강조용 색상과 기본 색상 정의
-        const DEFAULT_COLOR   = '#08122A';
+        const DEFAULT_COLOR = '#ffffff';
         const HIGHLIGHT_COLOR = '#ff3333';
 
-        const NODE_SIZE = 10
-        const LINK_WIDTH = 1.2
-        const LINK_COLOR = '#08122A';
+        const NODE_REL = 8;
+        const NODE_VAL   = 8;
+        const LINK_WIDTH  = 2;
+        const LINK_COLOR_DEFAULT  = '#08122A';
+        const LINK_COLOR_CAUSE     = 'yellow';
+        const LINK_COLOR_GENERAL   = 'green';
+
+        const formatNodeLabel = name => `
+          <div style="
+            font-weight: 600;
+            font-size: 30px;
+            color: #fff;
+            white-space: nowrap;
+          ">
+            ${name}
+          </div>
+        `;
 
         const graphs = {};
 
-        // ===== 레이어 4 (Concept_lv1)
-        graphs['4'] = ForceGraph3D()(document.getElementById('graph-level-4'))
-            .graphData({ nodes: conceptLv1Nodes, links: conceptLv1Links })
-            .nodeId('name') // id값이 없어서 추가
-            .nodeLabel(n =>
-                `<div style="font-weight:600; font-size:30px; color:#fff; white-space:nowrap">
-                      ${n.name}
-                </div>`)
-            // .nodeAutoColorBy('group')
-            .width(1200)
-            .height(800)
-            .nodeRelSize(NODE_SIZE)  // 노드 크기 작게
-            .linkWidth(LINK_WIDTH)  // 얇게
-            .nodeColor(() => DEFAULT_COLOR)
-            .linkColor(() => LINK_COLOR)
-            .showNavInfo(false)  // 우측 하단 info 제거
-            .backgroundColor('#1F957233')  // 레이어4 파랑
-            .enablePointerInteraction(false)
-            .enableNavigationControls(false)
-            .linkHoverPrecision(2)
+        const layerConfigs = [
+            {
+                level: '4',
+                nodes: conceptLv1Nodes,
+                links: conceptLv1Links,
+                arrow_len:0,
+                background: '#1F957233',
+                chargeStrength: -50,
+                linkDistance:   80,
+                center: [ -70, 20, 0 ]
+            },
+            {
+                level: '3',
+                nodes: conceptLv2Nodes,
+                links: conceptLv2Links,
+                arrow_len:0,
+                background: '#7BBEDF33',
+                chargeStrength: -10,
+                linkDistance:   250,
+                center: [ -70, 20, 0 ]
+            },
+            {
+                level: '2',
+                nodes: eventNodes,
+                links: eventLinks,
+                arrow_len:0,
+                background: '#2AC2BD33',
+                chargeStrength: -20,
+                linkDistance:   30,
+                center: [ -70, 20, 0 ]
+            },
+            {
+                level: '1',
+                nodes: youtubeNodes,
+                links: youtubeLinks,
+                arrow_len:10,
+                background: '#5F72A433',
+                chargeStrength: -50,
+                linkDistance:   80,
+                center: [ -70, 20, 0 ]
+            }
+        ];
 
-            // 1) 노드 간 반발력(Repulsion) 강화
-            //    - strength 값이 더 음수일수록 서로 멀리 떨어짐
-            .d3Force('charge', d3.forceManyBody().strength(-50))
-
-            // 2) 링크 거리(Link distance) 증가
-            //    - distance 값을 키우면 연결된 노드 사이 간격이 넓어짐
-            .d3Force('link', d3.forceLink().distance(80).strength(1))
-
-            // 3) 중앙 집중력(Centering) 비활성화
-            //    - 기본으로 들어가는 center force를 제거하면
-            //      “(0,0,0)” 쪽으로 모이는 힘이 사라짐
-            .d3Force(
-                'center',
-                // d3.forceCenter(x, y, z)
-                //   ⭢ x: 시뮬레이션 좌표계의 X축 위치 (음수는 왼쪽으로, 양수는 오른쪽으로 이동)
-                //   ⭢ y: Y축 위치 (음수는 위쪽으로, 양수는 아래쪽으로 이동)
-                //   ⭢ z: Z축(깊이) 위치 (필요 없으면 0)
-                d3.forceCenter(
-                    -70,   // 캔버스 너비의 30% 만큼 왼쪽으로 옮김
-                    20,  // 캔버스 높이의 30% 만큼 위쪽으로 옮김
-                    0
+        layerConfigs.forEach(cfg => {
+            const g = ForceGraph3D()(document.getElementById(`graph-level-${cfg.level}`))
+                .graphData({ nodes: cfg.nodes, links: cfg.links })
+                .nodeId('name')
+                .nodeLabel(n => formatNodeLabel(n.name))
+                .width(1200).height(800)
+                .nodeRelSize(NODE_REL)
+                .nodeVal(NODE_VAL)          // 노드 크기 확대
+                .nodeOpacity(1)
+                .linkOpacity(1)
+                .linkWidth(LINK_WIDTH)
+                .nodeColor(() => DEFAULT_COLOR)
+                .linkColor(link =>
+                    link.type === 'isCauseOf'   ? LINK_COLOR_CAUSE  :
+                        link.type === 'isGeneralOf' ? LINK_COLOR_GENERAL:
+                            LINK_COLOR_DEFAULT
                 )
-            )
+                .linkDirectionalArrowLength(cfg.arrow_len)
+                .linkDirectionalArrowRelPos(1)
+                .showNavInfo(false)
+                .backgroundColor(cfg.background)
+                .enablePointerInteraction(false)
+                .enableNavigationControls(false)
+                .d3Force('charge', d3.forceManyBody().strength(cfg.chargeStrength))
+                .d3Force('link', d3.forceLink().distance(cfg.linkDistance).strength(1))
+                .d3Force('center',
+                    cfg.center
+                        ? d3.forceCenter(...cfg.center)
+                        : null
+                );
 
-
-        // ===== 레이어 3 (Concept_lv2)
-        graphs['3'] = ForceGraph3D()(document.getElementById('graph-level-3'))
-            .graphData({ nodes: conceptLv2Nodes, links: conceptLv2Links })
-            .nodeId('name') // id값이 없어서 추가
-            .nodeLabel(n => n.name)
-            // .nodeAutoColorBy('group')
-            .width(1200)
-            .height(800)
-            .nodeRelSize(NODE_SIZE)  // 노드 크기 작게
-            .linkWidth(LINK_WIDTH)  // 얇게
-            .nodeColor(() => DEFAULT_COLOR)
-            .linkColor(() => LINK_COLOR)
-            .showNavInfo(false)  // 우측 하단 info 제거
-            .backgroundColor('#7BBEDF33')
-            .enablePointerInteraction(false)
-            .enableNavigationControls(false)
-            .linkHoverPrecision(2)
-
-            // 1) 노드 간 반발력(Repulsion) 강화
-            //    - strength 값이 더 음수일수록 서로 멀리 떨어짐
-            .d3Force('charge', d3.forceManyBody().strength(-10))
-
-            // 2) 링크 거리(Link distance) 증가
-            //    - distance 값을 키우면 연결된 노드 사이 간격이 넓어짐
-            .d3Force('link', d3.forceLink().distance(250).strength(1))
-
-            // 3) 중앙 집중력(Centering) 비활성화
-            //    - 기본으로 들어가는 center force를 제거하면
-            //      “(0,0,0)” 쪽으로 모이는 힘이 사라짐
-            .d3Force('center', null);
-
-
-        // ===== 레이어 2 (Event)
-        graphs['2'] = ForceGraph3D()(document.getElementById('graph-level-2'))
-            .graphData({ nodes: eventNodes, links: eventLinks })
-            .nodeId('name') // id값이 없어서 추가
-            .nodeLabel(n => n.name)
-            .nodeAutoColorBy('group')
-            .width(1200)
-            .height(800)
-            .nodeRelSize(NODE_SIZE)  // 노드 크기 작게
-            .linkWidth(LINK_WIDTH)  // 얇게
-            .nodeColor(() => DEFAULT_COLOR)
-            .linkColor(() => LINK_COLOR)
-            .showNavInfo(false)  // 우측 하단 info 제거
-            .backgroundColor('#2AC2BD33')
-            .enablePointerInteraction(false)
-            .enableNavigationControls(false)
-            .linkHoverPrecision(2)
-
-            // 1) 노드 간 반발력(Repulsion) 강화
-            //    - strength 값이 더 음수일수록 서로 멀리 떨어짐
-            .d3Force('charge', d3.forceManyBody().strength(-20))
-
-            // 2) 링크 거리(Link distance) 증가
-            //    - distance 값을 키우면 연결된 노드 사이 간격이 넓어짐
-            .d3Force('link', d3.forceLink().distance(30).strength(1))
-
-            // 3) 중앙 집중력(Centering) 비활성화
-            //    - 기본으로 들어가는 center force를 제거하면
-            //      “(0,0,0)” 쪽으로 모이는 힘이 사라짐
-            .d3Force('center', null);
-
-
-        // ===== 레이어 1 (youtube)
-        graphs['1'] = ForceGraph3D()(document.getElementById('graph-level-1'))
-            .graphData({ nodes: youtubeNodes, links: youtubeLinks })
-            .nodeId('name') // id값이 없어서 추가
-            .nodeLabel(n => n.name)
-            .nodeAutoColorBy('group')
-            .width(1200)
-            .height(800)
-            .nodeRelSize(NODE_SIZE)  // 노드 크기 작게
-            .linkWidth(LINK_WIDTH)  // 얇게
-            .nodeColor(() => DEFAULT_COLOR)
-            .linkColor(() => LINK_COLOR)
-            .showNavInfo(false)  // 우측 하단 info 제거
-            .backgroundColor('#5F72A433')
-            .enablePointerInteraction(false)
-            .enableNavigationControls(false)
-            .linkHoverPrecision(2)
-
-            // 1) 노드 간 반발력(Repulsion) 강화
-            //    - strength 값이 더 음수일수록 서로 멀리 떨어짐
-            .d3Force('charge', d3.forceManyBody().strength(-50))
-
-            // 2) 링크 거리(Link distance) 증가
-            //    - distance 값을 키우면 연결된 노드 사이 간격이 넓어짐
-            .d3Force('link', d3.forceLink().distance(80).strength(1))
-
-            // 3) 중앙 집중력(Centering) 비활성화
-            //    - 기본으로 들어가는 center force를 제거하면
-            //      “(0,0,0)” 쪽으로 모이는 힘이 사라짐
-            .d3Force('center', null);
+            graphs[cfg.level] = g;
+        });
 
 
         // ===== 통합 레이어 간 연결 (merged)
@@ -226,9 +179,9 @@ fetch('http://localhost:8080/api/graph')
             .d3Force('center', null);
 
 
-// --- 0) 레이어별 인덱스 매핑 ---
+        // --- 0) 레이어별 인덱스 매핑 ---
         const layerMap = new Map();
-// concept_lv1 → 4, concept_lv2 → 3, event → 2, youtube → 1
+        // concept_lv1 → 4, concept_lv2 → 3, event → 2, youtube → 1
         conceptLv1Nodes.forEach(n => layerMap.set(n.name, 4));
         conceptLv2Nodes.forEach(n => layerMap.set(n.name, 3));
         eventNodes.forEach(n      => layerMap.set(n.name, 2));
@@ -342,7 +295,8 @@ fetch('http://localhost:8080/api/graph')
 
             // 4) 해당 그래프 컨테이너만 fullscreen-graph 클래스 부여
             const graphDiv = document.getElementById(`graph-level-${levelId}`);
-            graphDiv.classList.add('fullscreen-graph');
+
+            graphDiv.classList.add('fullscreen-graph');  // .fullscreen-graph {position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:2000;}
 
             // 5) 해당 그래프 인스턴스만 interaction 켜기
             graphs[levelId]
@@ -350,8 +304,11 @@ fetch('http://localhost:8080/api/graph')
                 .enableNavigationControls(true)
                 .width(window.innerWidth)
                 .height(window.innerHeight)
-                .nodeRelSize(NODE_SIZE)    // 노드 크기 확대
-                .linkWidth(LINK_WIDTH)  // 얇게
+                // .nodeVal(NODE_VAL)          // 노드 크기 확대
+                // .nodeRelSize(NODE_REL)    // 노드 크기 확대
+                // .linkWidth(LINK_WIDTH)  // 얇게
+                // .nodeOpacity(1)
+                // .linkOpacity(1)
                 .enablePointerInteraction(true)
                 .onNodeClick(highlightConnected);
 
@@ -382,8 +339,9 @@ fetch('http://localhost:8080/api/graph')
                 graphs[id]
                     .width(1200)
                     .height(800)
-                    .nodeRelSize(NODE_SIZE)
-                    .linkWidth(LINK_WIDTH)  // 얇게
+                    // .nodeRelSize(NODE_REL)
+                    // .nodeVal(NODE_VAL)          // 노드 크기 확대
+                    // .linkWidth(LINK_WIDTH)  // 얇게
             });
         }
 
@@ -444,6 +402,9 @@ fetch('http://localhost:8080/api/graph')
                 highlightSet.has(l.source) && highlightSet.has(l.target)
             );
 
+            const nodesCopy = filteredNodes.map(n => ({ ...n }));
+            const linksCopy = filteredLinks.map(l => ({ ...l }));
+
             // (4) 기존 인스턴스가 있으면 제거
             if (filteredGraph) {
                 canvasContainer.innerHTML = '';
@@ -458,12 +419,13 @@ fetch('http://localhost:8080/api/graph')
 
             // (5) 새 ForceGraph3D 인스턴스 생성
             filteredGraph = ForceGraph3D()(canvasContainer)
-                .graphData({nodes: filteredNodes, links: filteredLinks})
+                .graphData({nodes: nodesCopy, links: linksCopy})
                 .nodeId('name')
                 .nodeLabel(n => n.name)
                 .width(canvasContainer.clientWidth)
                 .height(canvasContainer.clientHeight)
                 .nodeRelSize(8)
+                .nodeVal(8)          // 노드 크기 확대
                 .linkWidth(LINK_WIDTH)  // 얇게
                 .nodeColor(n => layerColorMap[n.label] || DEFAULT_COLOR)
                 .linkColor(() => HIGHLIGHT_COLOR)
@@ -471,7 +433,6 @@ fetch('http://localhost:8080/api/graph')
                 .d3Force('charge', d3.forceManyBody().strength(-60))
                 .d3Force('link', d3.forceLink().distance(50).strength(1))
                 .d3Force('center', d3.forceCenter(0, 0, 0))
-                .linkHoverPrecision(2);
         });
 
         // ① 버튼 참조
@@ -516,4 +477,13 @@ fetch('http://localhost:8080/api/graph')
                     btnLinkPred.textContent = '숨은 관계 찾기';
                 });
         });
+    })
+
+    .catch(err => {
+        console.error(err);
+        alert('그래프 로딩에 실패했습니다.');
+    })
+    .finally(() => {
+        // ③ hide it when done (whether success or fail)
+        loader.classList.add('hidden');
     });

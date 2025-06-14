@@ -12,7 +12,7 @@
     <script src="/js/modernizr-custom.js"></script>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="https://unpkg.com/3d-force-graph"></script>
-</head>
+    <script src="//cdn.jsdelivr.net/npm/three-spritetext"></script></head>
 <body>
 <svg class="hidden">
     <defs>
@@ -36,6 +36,11 @@
         <header class="codrops-header">
             <h1>지식을 구조화하면 세상이 다르게 보인다</h1>
         </header>
+
+        <div id="graph-loading" class="loading-overlay">
+            <div class="spinner"></div>
+        </div>
+
         <!-- 필터된 그래프 보기 버튼 -->
         <button id="show-filtered" class="button boxbutton boxbutton--alt" style="position:absolute; bottom:1em; right:1em; z-index:1001;">구조화 그래프 보기</button>
         <!-- 전용 컨테이너: 처음엔 숨겨놓기 -->
