@@ -155,6 +155,37 @@ button:focus {
 	height: 100vh;
 }
 
+/* full‐screen semi‐opaque backdrop */
+.loading-overlay {
+	position: fixed;
+	top: 0; left: 0;
+	width: 100vw; height: 100vh;
+	background: rgba(0,0,0,0.6);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 3000;       /* sit above everything */
+}
+
+/* hidden by default */
+.loading-overlay.hidden {
+	display: none;
+}
+
+/* simple spinner */
+.spinner {
+	width: 50px;
+	height: 50px;
+	border: 6px solid #ccc;
+	border-top-color: #09c;
+	border-radius: 50%;
+	animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+	to { transform: rotate(360deg); }
+}
+
 .mall {
 	position: relative;
 	width: 100%;
@@ -569,4 +600,10 @@ button:focus {
 		padding-right: 4em;
 		text-align: left;
 	}
+}
+
+
+.levels.levels--fullscreen,
+.levels.levels--fullscreen .level.level--current {
+	transform: none !important;
 }
