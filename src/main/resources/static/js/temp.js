@@ -1,3 +1,4 @@
+// import { forceCollide } from 'https://esm.sh/d3-force-3d';
 // import { GUI } from 'https://esm.sh/dat.gui';
 
 // loading spinner
@@ -345,9 +346,9 @@ fetch('http://localhost:8080/api/graph')
                 graphs[id]
                     .width(1200)
                     .height(800)
-                    // .nodeRelSize(NODE_REL)
-                    // .nodeVal(NODE_VAL)          // 노드 크기 확대
-                    // .linkWidth(LINK_WIDTH)  // 얇게
+                // .nodeRelSize(NODE_REL)
+                // .nodeVal(NODE_VAL)          // 노드 크기 확대
+                // .linkWidth(LINK_WIDTH)  // 얇게
             });
         }
 
@@ -423,16 +424,31 @@ fetch('http://localhost:8080/api/graph')
 
             // highlightSet 기준으로 노드/링크 필터링
             const filteredNodes = data.nodes.filter(n => highlightSet.has(n.name));
-            const nodesCopy = filteredNodes.map((n, index) => ({
-                ...n,
-                index: index  // 새로운 인덱스 할당
-            }));
+            const nodesCopy = filteredNodes.map(n => ({ ...n }));
 
-            const nameToIndexMap = new Map();
-            nodesCopy.forEach((node, index) => {
-                nameToIndexMap.set(node.name, index);
-            });
-
+            // const filteredLinks = data.links.filter(l => {
+            //     // 1) 양쪽 노드가 모두 강조된 상태인지
+            //     if (!highlightSet.has(l.source) || !highlightSet.has(l.target)) {
+            //         return false;
+            //     }
+            //
+            //     // 2) source 노드가 Concept_lv1 또는 Concept_lv2 인지 확인
+            //     const srcLabel = nodeLabelMap.get(l.source);
+            //     const isSrcConcept = srcLabel === 'Concept_lv1' || srcLabel === 'Concept_lv2';
+            //
+            //     // 3) 레이어 순위 비교
+            //     const srcRank = layerMap.get(l.source);
+            //     const tgtRank = layerMap.get(l.target);
+            //
+            //     if (isSrcConcept) {
+            //         // Concept 계열일 때만 상위→하위 (rank 높음→낮음) 관계만 허용
+            //         return srcRank > tgtRank;
+            //     } else {
+            //         // 그 밖의 노드(이벤트나 유튜브)는 단순히 강조된 링크만 남기기
+            //         return true;
+            //     }
+            // })
+            //     .map(l => ({...l}));
             const filteredLinks = data.links.filter(l => {
                 // 1) 양쪽 노드가 모두 강조된 상태인지 확인
                 const sourceName = typeof l.source === 'object' ? l.source.name : l.source;
@@ -457,39 +473,18 @@ fetch('http://localhost:8080/api/graph')
                     // 그 밖의 노드(이벤트나 유튜브)는 단순히 강조된 링크만 남기기
                     return true;
                 }
-            }).map(l => {
+            }).map(l => ({...l}));
+
+            // const interLinks = youtubeLinks.filter(l =>
+            //     highlightSet.has(l.source.name) && highlightSet.has(l.target.name)
+            // ).map(l => ({...l}));
+            const interLinks = youtubeLinks.filter(l => {
+                // source와 target이 객체인지 문자열인지 확인
                 const sourceName = typeof l.source === 'object' ? l.source.name : l.source;
                 const targetName = typeof l.target === 'object' ? l.target.name : l.target;
 
-                return {
-                    ...l,
-                    source: nameToIndexMap.get(sourceName), // 🔥 인덱스로 변환
-                    target: nameToIndexMap.get(targetName)  // 🔥 인덱스로 변환
-                };
-            });
-
-
-            // const interLinks = youtubeLinks.filter(l => {
-            //     // source와 target이 객체인지 문자열인지 확인
-            //     const sourceName = typeof l.source === 'object' ? l.source.name : l.source;
-            //     const targetName = typeof l.target === 'object' ? l.target.name : l.target;
-            //
-            //     return highlightSet.has(sourceName) && highlightSet.has(targetName);
-            // }).map(l => ({...l}));
-            const filteredIntraLayerLinks = youtubeLinks.filter(l => {
-                const sourceName = typeof l.source === 'object' ? l.source.name : l.source;
-                const targetName = typeof l.target === 'object' ? l.target.name : l.target;
                 return highlightSet.has(sourceName) && highlightSet.has(targetName);
-            }).map(l => {
-                const sourceName = typeof l.source === 'object' ? l.source.name : l.source;
-                const targetName = typeof l.target === 'object' ? l.target.name : l.target;
-
-                return {
-                    ...l,
-                    source: nameToIndexMap.get(sourceName), // 🔥 인덱스로 변환
-                    target: nameToIndexMap.get(targetName)  // 🔥 인덱스로 변환
-                };
-            });
+            }).map(l => ({...l}));
 
             console.log('filteredLinks');
             console.log(filteredLinks);
@@ -503,7 +498,7 @@ fetch('http://localhost:8080/api/graph')
 
             console.log('── highlightSet 기반 매칭 youtubeLinks ──');
 
-            console.log(filteredIntraLayerLinks
+            console.log(interLinks
                 // youtubeLinks.filter(l =>
                 //     highlightSet.has(l.source) || highlightSet.has(l.target)
                 // )
@@ -511,7 +506,7 @@ fetch('http://localhost:8080/api/graph')
 
             const linksCopy = [
                 ...filteredLinks,  // concept-/event-/event→youtube 링크
-                ...filteredIntraLayerLinks      // youtube→youtube 링크
+                ...interLinks      // youtube→youtube 링크
             ];  // 최종 shallow copy
 
             console.log('nodesCopy')
@@ -531,12 +526,11 @@ fetch('http://localhost:8080/api/graph')
                 'Event'      : '#ffbbbb',  // 더 연한 빨강
                 'Youtube'    : '#ffffff'   // 가장 연한 빨강
             };
-            const NODE_REL_SIZE = 8;
 
             // (5) 새 ForceGraph3D 인스턴스 생성
             filteredGraph = ForceGraph3D()(canvasContainer)
                 .graphData({nodes: nodesCopy, links: linksCopy})
-                .nodeId('index')
+                .nodeId('name')
                 .nodeLabel(n => n.name)
                 .dagMode(null)
                 .onDagError(cycle => {            // 사이클(루프) 검출시 호출
@@ -544,7 +538,7 @@ fetch('http://localhost:8080/api/graph')
                 })
                 .width(canvasContainer.clientWidth)
                 .height(canvasContainer.clientHeight)
-                .nodeRelSize(NODE_REL_SIZE)
+                .nodeRelSize(8)
                 .nodeVal(8)          // 노드 크기 확대
                 .nodeColor(n => layerColorMap[n.label] || DEFAULT_COLOR)
                 .linkColor(link =>
@@ -560,33 +554,8 @@ fetch('http://localhost:8080/api/graph')
                 .linkDirectionalArrowLength(10) // 화살표 길이
                 .backgroundColor('rgba(0,0,0,0)')
                 .d3Force('charge', d3.forceManyBody().strength(-60))
-                .d3Force('link', d3.forceLink()
-                    .id(d => d.index)
-                    // 연결 유형별 거리 조정: 유튜브-유튜브는 30, 나머지는 100
-                    .distance(link => {
-                        return (link.source.label === 'Youtube' && link.target.label === 'Youtube')
-                            ? 30    // 유튜브 간은 촘촘하게
-                            : 100;  // 그 외는 널찍하게
-                    })
-                    // 연결 강도(strength)도 유형별로: 유튜브-유튜브는 0.8, 그 외는 0.2
-                    // .strength(link => {
-                    //     const src = nodesCopy[link.source];
-                    //     const tgt = nodesCopy[link.target];
-                    //     return (src.label === 'Youtube' && tgt.label === 'Youtube')
-                    //         ? 0.8   // 힘을 세게 주어 뭉치도록
-                    //         : 0.2;  // 약하게 주어 느슨히
-                    // })
-                    .strength(link => {
-                        return (link.source.label === 'Youtube' && link.target.label === 'Youtube')
-                            ? 0.8  // YT–YT 간은 뭉치도록 강하게
-                            : 0.2; // 그 외는 느슨하게
-                    })
-                )
-                // .d3Force('collision',
-                //         forceCollide(node => NODE_REL_SIZE + 1)  // 충돌 처리: 반지름 + 여유 1px
-                // )
-                .d3Force('charge', d3.forceManyBody().strength(-60))
-                .d3Force('center', d3.forceCenter(0, 0, 0));
+                .d3Force('link', d3.forceLink().distance(100).strength(1))
+                .d3Force('center', d3.forceCenter(0, 0, 0))
         });
 
         // ① 버튼 참조

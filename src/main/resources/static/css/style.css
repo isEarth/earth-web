@@ -494,6 +494,15 @@ button:focus {
 	color: #ffffff;
 }
 
+.view-change{
+	position:absolute;
+	top:5px;
+	right:5px;
+	padding:8px;
+	background:rgba(0,0,0,0);
+	font-size:14px;
+	z-index:1001;
+}
 .level--current .map__space {
 	fill-opacity: 1;
 }

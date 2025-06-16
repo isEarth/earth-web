@@ -44,14 +44,17 @@
         <!-- 필터된 그래프 보기 버튼 -->
         <button id="show-filtered" class="button boxbutton boxbutton--alt" style="position:absolute; bottom:1em; right:1em; z-index:1001;">구조화 그래프 보기</button>
         <!-- 전용 컨테이너: 처음엔 숨겨놓기 -->
-
-        <div id="filtered-graph" style="width:600px; height:400px; position:absolute; bottom:1em; right:1em; display:none; background:#081229; border:1px solid #444; z-index:1000;">
+        <div id="filtered-graph" style="width:800px; height:600px; position:absolute; bottom:1em; right:1em; display:none; background:#081229; border:1px solid #444; z-index:1000;">
             <!-- ① 범례(legend) 박스 -->
             <div class="legend">
                 <div class="legend-lv1">Lv1 컨셉</div>
                 <div class="legend-lv2">Lv2 컨셉</div>
                 <div class="legend-event">이벤트</div>
                 <div class="legend-youtube">유튜브 지식그래프</div>
+            </div>
+            <div id="filtered-graph-controls" class="view-change">
+                <button id="layout-force" class="boxbutton">Force Layout</button>
+                <button id="layout-tree"  class="boxbutton">Tree Layout</button>
             </div>
             <!-- ② 그래프가 그려질 캔버스 영역 -->
             <div id="filtered-graph-canvas" style="width:100%; height:100%;"></div>
