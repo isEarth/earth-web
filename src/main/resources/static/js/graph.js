@@ -4,7 +4,7 @@
 const loader = document.getElementById('graph-loading');
 loader.classList.remove('hidden');
 
-fetch('http://localhost:8080/api/graph')
+fetch('http://10.123.236.40:8080/api/graph')
     // fetch('data/concept_lv1.json')
     .then(response => {
         if (!response.ok) {
@@ -50,12 +50,13 @@ fetch('http://localhost:8080/api/graph')
 
         // 노드 강조용 색상과 기본 색상 정의
         const DEFAULT_COLOR = '#ffffff';
-        const HIGHLIGHT_COLOR = '#ff3333';
+        // const HIGHLIGHT_COLOR = '#ff3333';
+        const HIGHLIGHT_COLOR = '#fb4d3d';
 
         const NODE_REL = 8;
         const NODE_VAL   = 8;
-        const LINK_WIDTH  = 2;
-        const LINK_COLOR_DEFAULT  = '#08122A';
+        const LINK_WIDTH  = 3;
+        const LINK_COLOR_DEFAULT  = '#08122A00';
         const LINK_COLOR_CAUSE     = 'yellow';
         const LINK_COLOR_GENERAL   = 'green';
 
