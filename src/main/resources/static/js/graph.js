@@ -4,8 +4,8 @@
 const loader = document.getElementById('graph-loading');
 loader.classList.remove('hidden');
 
-fetch('http://10.123.236.40:8080/api/graph')
-    // fetch('data/concept_lv1.json')
+// fetch('http://10.123.236.40:8080/api/graph')
+fetch('http://localhost:8080/api/graph')
     .then(response => {
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -70,6 +70,28 @@ fetch('http://10.123.236.40:8080/api/graph')
             ${name}
           </div>
         `;
+        const formatLinkLabel = (type) => {
+            const color = type === 'isCauseOf'
+                ? 'yellow'
+                : type === 'isGeneralOf'
+                    ? 'green'
+                    : 'white';
+
+            const label = type === 'isCauseOf'   ? '인과 관계'
+                : type === 'isGeneralOf' ? '관계 있음'
+                    : '';
+
+            return `
+                <div style="
+                  font-weight: 600;
+                  font-size: 30px;
+                  color: ${color};
+                  white-space: nowrap;
+                ">
+                  ${label}
+                </div>
+              `;
+        };
 
         const graphs = {};
 
@@ -135,6 +157,7 @@ fetch('http://10.123.236.40:8080/api/graph')
                 )
                 .linkDirectionalArrowLength(cfg.arrow_len)
                 .linkDirectionalArrowRelPos(1)
+                .linkLabel(link => formatLinkLabel(link.type))
                 .showNavInfo(false)
                 .backgroundColor(cfg.background)
                 .enablePointerInteraction(false)
@@ -346,9 +369,9 @@ fetch('http://10.123.236.40:8080/api/graph')
                 graphs[id]
                     .width(1200)
                     .height(800)
-                    // .nodeRelSize(NODE_REL)
-                    // .nodeVal(NODE_VAL)          // 노드 크기 확대
-                    // .linkWidth(LINK_WIDTH)  // 얇게
+                // .nodeRelSize(NODE_REL)
+                // .nodeVal(NODE_VAL)          // 노드 크기 확대
+                // .linkWidth(LINK_WIDTH)  // 얇게
             });
         }
 
@@ -538,7 +561,7 @@ fetch('http://10.123.236.40:8080/api/graph')
             filteredGraph = ForceGraph3D()(canvasContainer)
                 .graphData({nodes: nodesCopy, links: linksCopy})
                 .nodeId('index')
-                .nodeLabel(n => n.name)
+                .nodeLabel(n => formatNodeLabel(n.name))
                 .dagMode(null)
                 .onDagError(cycle => {            // 사이클(루프) 검출시 호출
                     console.error('DAG 사이클 발견:', cycle);
@@ -558,6 +581,7 @@ fetch('http://10.123.236.40:8080/api/graph')
                 .linkDirectionalArrowRelPos(1)
                 .linkDirectionalParticles(2)   // 방향성 입자
                 .linkDirectionalParticleWidth(1)
+                .linkDirectionalParticleColor('white')
                 .linkDirectionalArrowLength(10) // 화살표 길이
                 .backgroundColor('rgba(0,0,0,0)')
                 .d3Force('charge', d3.forceManyBody().strength(-60))
@@ -566,7 +590,7 @@ fetch('http://10.123.236.40:8080/api/graph')
                     // 연결 유형별 거리 조정: 유튜브-유튜브는 30, 나머지는 100
                     .distance(link => {
                         return (link.source.label === 'Youtube' && link.target.label === 'Youtube')
-                            ? 30    // 유튜브 간은 촘촘하게
+                            ? 40    // 유튜브 간은 촘촘하게
                             : 100;  // 그 외는 널찍하게
                     })
                     // 연결 강도(strength)도 유형별로: 유튜브-유튜브는 0.8, 그 외는 0.2
@@ -579,14 +603,14 @@ fetch('http://10.123.236.40:8080/api/graph')
                     // })
                     .strength(link => {
                         return (link.source.label === 'Youtube' && link.target.label === 'Youtube')
-                            ? 0.8  // YT–YT 간은 뭉치도록 강하게
-                            : 0.2; // 그 외는 느슨하게
+                            ? 1.0  // YT–YT 간은 뭉치도록 강하게
+                            : 0.1; // 그 외는 느슨하게
                     })
                 )
                 // .d3Force('collision',
                 //         forceCollide(node => NODE_REL_SIZE + 1)  // 충돌 처리: 반지름 + 여유 1px
                 // )
-                .d3Force('charge', d3.forceManyBody().strength(-60))
+                .d3Force('charge', d3.forceManyBody().strength(-50))
                 .d3Force('center', d3.forceCenter(0, 0, 0));
         });
 
@@ -594,33 +618,80 @@ fetch('http://10.123.236.40:8080/api/graph')
         const btnLinkPred = document.getElementById('link_pred');
 
         // ② 클릭 핸들러 등록
-        btnLinkPred.addEventListener('click', () => {
+        btnLinkPred.addEventListener('click', async () => {
             // (선택) 요청 직전에 사용자에게 로딩 표시
             btnLinkPred.disabled = true;
             btnLinkPred.textContent = '검색 중…';
 
             // ③ API 호출 (POST 예시)
-            fetch('/api/hidden-relations', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                // 필요하다면 본문에 추가 파라미터를 담아 보낼 수 있습니다.
-                body: JSON.stringify({
-                    // 예: 현재 강조된 노드 집합
-                    nodes: Array.from(highlightSet),
-                    // 예: 현재 inter-layer 링크
-                    links: interLayerLinks
-                })
+            await fetch('http://regularmark.iptime.org:37003/generate_hiding_relation', {
+                method: 'GET',
+                // headers: {
+                //     'Content-Type': 'application/json'
+                // },
             })
                 .then(res => {
+                    console.log('response OKayyyyyyyy')
                     if (!res.ok) throw new Error(`HTTP ${res.status}`);
                     return res.json();
                 })
+                // fetch('data/dummy_links.json').then(res => {
+                //     if (!res.ok) throw new Error(`더미 JSON 오류: ${res.status}`);
+                //     return res.json();
+                // })
                 .then(data => {
                     console.log('숨은 관계 결과:', data);
-                    // TODO: 받은 data를 바탕으로 UI에 표시하거나,
-                    //       filtered-graph 등에 업데이트 로직을 추가
+                    const predLinks = data.map(l => ({
+                        source: l.source,
+                        target: l.target,
+                        type: l.type,
+                        // 원본 링크 객체와 비교하기 위해 ID 같은 고유값을 꼭 포함시켜 주세요.
+                        key: `${l.source}⇄${l.target}`
+                    }));
+                    const predLinkKeySet = new Set(predLinks.map(l => l.key));
+
+                    // 4) 기존 youtube 레이어 링크에 더미 링크 합치기
+                    const mergedLinks = [
+                        ...youtubeLinks.map(l => ({
+                            ...l,
+                            key: `${l.source.name||l.source}⇄${l.target.name||l.target}`  // 기존 링크에도 key 설정
+                        })),
+                        ...predLinks
+                    ];
+                    // 5) graphs['1']에 새 데이터로 갱신
+                    graphs['1']
+                        .graphData({ nodes: youtubeNodes, links: mergedLinks })
+
+                        .linkWidth(link =>
+                            predLinkKeySet.has(link.key) ? 4 : LINK_WIDTH
+                        )
+                        // 5) linkDirectionalParticles: 예측 링크만 입자(4개) 띄우기
+                        .linkDirectionalParticles(link =>
+                            predLinkKeySet.has(link.key) ? 4 : 0
+                        )
+                        // 6) linkDirectionalParticleWidth: 입자 크기
+                        .linkDirectionalParticleWidth(link =>
+                            predLinkKeySet.has(link.key) ? 7 : 0
+                        )
+                        .linkDirectionalParticleColor(link =>
+                            predLinkKeySet.has(link.key) ? 'white' : null
+                        )
+
+                        // 7) linkColor: 예측 링크는 마젠타, 나머지는 기존 로직
+                        .linkColor(link => {
+                            if (predLinkKeySet.has(link.key)) {
+                                return HIGHLIGHT_COLOR;                      // 예측 링크 강조 색
+                            } else if (link.type === 'isCauseOf') {
+                                return LINK_COLOR_CAUSE;               // 기존 인과 링크
+                            } else if (link.type === 'isGeneralOf') {
+                                return LINK_COLOR_GENERAL;             // 기존 일반 링크
+                            } else {
+                                return LINK_COLOR_DEFAULT;             // 그 외
+                            }
+                        })
+
+                        // 8) 렌더링 갱신
+                        .refresh();
                 })
                 .catch(err => {
                     console.error('숨은 관계 검색 중 에러:', err);

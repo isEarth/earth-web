@@ -494,6 +494,13 @@ button:focus {
 	color: #ffffff;
 }
 
+.legend-cause {
+	color: yellow;
+}
+.legend-general {
+	color: green;
+}
+
 .view-change{
 	position:absolute;
 	top:5px;
